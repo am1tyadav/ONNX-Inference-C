@@ -53,9 +53,7 @@ dkms.conf
 
 .conda
 saved_model
-assets/*
 build/*
-!assets/.gitkeep
 !build/.gitkeep
 
 .DS_Store
