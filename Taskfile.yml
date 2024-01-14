@@ -1,0 +1,45 @@
+# https://taskfile.dev
+
+version: 3
+
+vars:
+  python_version: 3.10
+  conda_dir: ./.conda
+  conda_command: run -p {{ .conda_dir }} --live-stream
+  flags: -Wall -Werror -std=c17
+  include_path: /opt/homebrew/include
+  lib_path: /opt/homebrew/lib
+
+tasks:
+  build:
+    cmd: |
+      clang {{ .flags }} -I{{ .include_path }} -L{{ .lib_path }} \
+      -lraylib -lonnxruntime -o ./build/main ./src/main.c
+
+  conda:
+    cmds:
+      - conda create -p {{ .conda_dir }} python={{ .python_version }} -y
+      - conda {{ .conda_command }} python -m pip install -r requirements.txt
+
+  default:
+    cmds:
+      - task: build
+      - task: run
+
+  list:
+    cmd: task --list-all
+
+  run:
+    dir: ./build
+    cmd: ./main
+
+  setup:
+    cmds:
+      - brew install raylib
+      - brew install onnxruntime
+      - task: conda
+
+  train:
+    cmds:
+      - conda {{ .conda_command }} python train.py
+      - conda {{ .conda_command }} python -m tf2onnx.convert --saved-model ./saved_model --output ./build/model.onnx
