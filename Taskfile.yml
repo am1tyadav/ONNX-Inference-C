@@ -12,34 +12,41 @@ vars:
 
 tasks:
   build:
+    desc: Build the app
     cmd: |
       clang {{ .flags }} -I{{ .include_path }} -L{{ .lib_path }} \
       -lraylib -lonnxruntime -o ./build/main ./src/main.c
 
   conda:
+    desc: Create conda environment in the project dir and install required python packages
     cmds:
       - conda create -p {{ .conda_dir }} python={{ .python_version }} -y
       - conda {{ .conda_command }} python -m pip install -r requirements.txt
 
   default:
+    desc: Build and run the app
     cmds:
       - task: build
       - task: run
 
   list:
+    desc: List all available tasks
     cmd: task --list-all
 
   run:
+    desc: Run the app (must be already built)
     dir: ./build
     cmd: ./main
 
   setup:
+    desc: Setup conda environment and install the project dependencies (Raylib and ONNX Runtime)
     cmds:
       - brew install raylib
       - brew install onnxruntime
       - task: conda
 
   train:
+    desc: Train the classifier and convert the resulting TensorFlow saved model to ONNX
     cmds:
       - conda {{ .conda_command }} python train.py
       - conda {{ .conda_command }} python -m tf2onnx.convert --saved-model ./saved_model --output ./build/model.onnx
