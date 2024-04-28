@@ -55,5 +55,10 @@ dkms.conf
 saved_model
 build/*
 !build/.gitkeep
+*.onnx
+cmake-build-debug/*
+!cmake-build-debug/.gitkeep
+CMakeCache.txt
 
 .DS_Store
+.idea

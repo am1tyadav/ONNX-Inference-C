@@ -3,50 +3,32 @@
 version: 3
 
 vars:
-  python_version: 3.10
-  conda_dir: ./.conda
-  conda_command: run -p {{ .conda_dir }} --live-stream
-  flags: -Wall -Werror -std=c17
-  include_path: /opt/homebrew/include
-  lib_path: /opt/homebrew/lib
+  py_version: 3.10
+  env_name: onnx-example
 
 tasks:
-  build:
-    desc: Build the app
-    cmd: |
-      clang {{ .flags }} -I{{ .include_path }} -L{{ .lib_path }} \
-      -lraylib -lonnxruntime -o ./build/main ./src/main.c
-
-  conda:
-    desc: Create conda environment in the project dir and install required python packages
-    cmds:
-      - conda create -p {{ .conda_dir }} python={{ .python_version }} -y
-      - conda {{ .conda_command }} python -m pip install -r requirements.txt
-
   default:
-    desc: Build and run the app
-    cmds:
-      - task: build
-      - task: run
-
-  list:
-    desc: List all available tasks
+    desc: List all tasks
     cmd: task --list-all
-
-  run:
-    desc: Run the app (must be already built)
-    dir: ./build
-    cmd: ./main
-
-  setup:
-    desc: Setup conda environment and install the project dependencies (Raylib and ONNX Runtime)
+  
+  conda:
+    desc: Setup conda environment
     cmds:
-      - brew install raylib
-      - brew install onnxruntime
-      - task: conda
-
+      - conda create -n {{ .env_name }} python={{ .py_version }} -y
+      - conda run -n {{ .env_name }} --live-stream python -m pip install -r requirements.txt
+  
   train:
-    desc: Train the classifier and convert the resulting TensorFlow saved model to ONNX
+    desc: Train MNIST model and convert to ONNX format
     cmds:
-      - conda {{ .conda_command }} python train.py
-      - conda {{ .conda_command }} python -m tf2onnx.convert --saved-model ./saved_model --output ./build/model.onnx
+      - conda run -n {{ .env_name }} --live-stream python train.py
+      - conda run -n {{ .env_name }} --live-stream python -m tf2onnx.convert --saved-model ./saved_model --output ./model.onnx
+
+  build:
+    desc: Build C project
+    cmds:
+      - cmake -B ./cmake-build-debug -S .
+      - cmake --build ./cmake-build-debug --target onnx_inference_example
+  
+  run:
+    desc: Run executable
+    cmd: ./cmake-build-debug/onnx_inference_example

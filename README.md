@@ -1,21 +1,44 @@
 # ONNX Inference In C
 
-Using ONNX runtime to run inference on an ONNX mdoel in C.
+Using ONNX runtime to run inference on an ONNX model in C.
 
 ![ONNX in C](./assets/onnx_in_c.gif)
 
 ## Requirements
 
 - C Compiler
-- [Task](https://taskfile.dev) or user-defined build system
-- [Raylib](https://www.raylib.com)
-- [ONNX Runtime](https://onnxruntime.ai)
-- [Conda](https://conda.io/projects/conda/en/latest/index.html)
-
-I have provided a `Taskfile` to help setup the requirements on macOS quickly with: `task setup`
+- CMake
+- Conda
 
 ## Usage
 
-- Install dependencies and setup conda environment: `task setup`
-- Train the model and convert it to ONNX: `task train`
-- Build and run the app: `task`
+Setup python environment, for example, using conda:
+
+```bash
+conda create -n onnx-example python=3.10 -y
+
+conda activate onnx-example
+
+python -m pip install -r requirements.txt
+
+python train.py
+```
+
+This will train and create a TF saved model in `saved_model` directory.
+
+Next, we convert the model to onnx:
+
+```bash
+python -m tf2onnx.convert --saved-model ./saved_model --output ./model.onnx
+```
+
+Now the model is available in the ONNX format, we can build and run the app:
+
+```bash
+cmake -B ./cmake-build-debug -S .
+cmake --build ./cmake-build-debug --target onnx_inference_example
+
+./cmake-build-debug/onnx_inference_example
+```
+
+Note: Command for building ONNX for your platform will have to be explicitly set as I'm only building for macOS arm64.
