@@ -42,3 +42,15 @@ cmake --build ./cmake-build-debug --target onnx_inference_example
 ```
 
 Note: Command for building ONNX for your platform will have to be explicitly set as I'm only building for macOS arm64.
+
+For convenience, you can install [Task](https://taskfile.dev/) and run `task` in the terminal to see the list of available tasks:
+
+```txt
+task: Available tasks for this project:
+
+* build:         Build C project
+* conda:         Setup conda environment
+* default:       List all tasks
+* run:           Run executable
+* train:         Train MNIST model and convert to ONNX format
+```
