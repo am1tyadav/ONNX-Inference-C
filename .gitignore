@@ -56,8 +56,8 @@ saved_model
 build/*
 !build/.gitkeep
 *.onnx
-cmake-build-debug/*
-!cmake-build-debug/.gitkeep
+cmake-build/*
+!cmake-build/.gitkeep
 CMakeCache.txt
 
 .DS_Store

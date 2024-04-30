@@ -5,30 +5,41 @@ version: 3
 vars:
   py_version: 3.10
   env_name: onnx-example
+  conda_command: run -n {{ .env_name }} --live-stream
+  cmake_dirname: cmake-build
+  app_name: onnx_inference_example
 
 tasks:
-  default:
-    desc: List all tasks
-    cmd: task --list-all
+  all:
+    desc: Run all tasks to setup conda environment, train the model, build and run the app
+    cmds:
+      - task: conda
+      - task: train
+      - task: build
+      - task: run
+
+  build:
+    desc: Build C project
+    cmds:
+      - conda {{ .conda_command }} cmake -B ./{{ .cmake_dirname }} -S .
+      - conda {{ .conda_command }} cmake --build ./{{ .cmake_dirname }} --target {{ .app_name }}
 
   conda:
     desc: Setup conda environment
     cmds:
       - conda create -n {{ .env_name }} python={{ .py_version }} -y
-      - conda run -n {{ .env_name }} --live-stream python -m pip install -r requirements.txt
+      - conda {{ .conda_command }} python -m pip install -r requirements.txt
+
+  default:
+    desc: List all tasks
+    cmd: task --list-all
+
+  run:
+    desc: Run executable
+    cmd: ./{{ .cmake_dirname }}/{{ .app_name }}
 
   train:
     desc: Train MNIST model and convert to ONNX format
     cmds:
-      - conda run -n {{ .env_name }} --live-stream python train.py
-      - conda run -n {{ .env_name }} --live-stream python -m tf2onnx.convert --saved-model ./saved_model --output ./model.onnx
-
-  build:
-    desc: Build C project
-    cmds:
-      - cmake -B ./cmake-build-debug -S .
-      - cmake --build ./cmake-build-debug --target onnx_inference_example
-
-  run:
-    desc: Run executable
-    cmd: ./cmake-build-debug/onnx_inference_example
+      - conda {{ .conda_command }} python train.py
+      - conda {{ .conda_command }} python -m tf2onnx.convert --saved-model ./saved_model --output ./model.onnx
