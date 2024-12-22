@@ -3,32 +3,42 @@
 version: 3
 
 vars:
-  py_version: 3.10
   env_name: onnx-example
   conda_command: run -n {{ .env_name }} --live-stream
-  cmake_dirname: cmake-build
   app_name: onnx_inference_example
+  onnx_runtime: onnxruntime-osx-arm64-1.17.1
 
 tasks:
   all:
     desc: Run all tasks to setup conda environment, train the model, build and run the app
     cmds:
       - task: conda
+      - task: deps
       - task: train
       - task: build
       - task: run
 
   build:
     desc: Build C project
-    cmds:
-      - conda {{ .conda_command }} cmake -B ./{{ .cmake_dirname }} -S .
-      - conda {{ .conda_command }} cmake --build ./{{ .cmake_dirname }} --target {{ .app_name }}
+    cmd: |
+      clang -std=c11 -I./deps/onnx_runtime/include -I./deps/raylib/src \
+      -L./deps/onnx_runtime/lib -lonnxruntime -rpath ./deps/onnx_runtime/lib \
+      -framework CoreVideo -framework IOKit \
+      -framework Cocoa -framework GLUT -framework OpenGL \
+      main.c ./deps/raylib/src/libraylib.a -o {{ .app_name }}
 
   conda:
     desc: Setup conda environment
+    cmd: conda update -f conda.yml
+
+  deps:
+    desc: Install dependencies for macOS
     cmds:
-      - conda create -n {{ .env_name }} python={{ .py_version }} -y
-      - conda {{ .conda_command }} python -m pip install -r requirements.txt
+      - wget -O ./deps/onnx_runtime.tgz https://github.com/microsoft/onnxruntime/releases/download/v1.17.1/{{ .onnx_runtime }}.tgz
+      - cd ./deps && tar -xzvf onnx_runtime.tgz
+      - mv ./deps/{{ .onnx_runtime }} ./deps/onnx_runtime
+      - git clone https://github.com/raysan5/raylib.git ./deps/raylib
+      - cd ./deps/raylib/src && make
 
   default:
     desc: List all tasks
@@ -36,7 +46,7 @@ tasks:
 
   run:
     desc: Run executable
-    cmd: ./{{ .cmake_dirname }}/{{ .app_name }}
+    cmd: ./{{ .app_name }}
 
   train:
     desc: Train MNIST model and convert to ONNX format

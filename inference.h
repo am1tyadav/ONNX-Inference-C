@@ -12,7 +12,7 @@
 #include <libproc.h>
 #include <unistd.h>
 
-#include "onnxruntime/core/session/onnxruntime_c_api.h"
+#include "onnxruntime_c_api.h"
 
 #define IMAGE_W     28
 #define IMAGE_H     28
