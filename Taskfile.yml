@@ -29,7 +29,7 @@ tasks:
 
   conda:
     desc: Setup conda environment
-    cmd: conda update -f conda.yml
+    cmd: conda env update -f conda.yml
 
   deps:
     desc: Install dependencies for macOS
